@@ -1,16 +1,11 @@
-
+import { BrowserRouter as Router } from "react-router-dom";
+import AppRoutes from './routes/AppRoutes';
 import './App.css'
 
-function App() {
 
-  return (
-    <>
-      <div>
-        <button className='button'>Mon bouton de bootstrap</button>
-      </div>
-      
-    </>
-  )
+function App() {
+       
+       return <Router><AppRoutes/></Router>;
 }
 
 export default App
