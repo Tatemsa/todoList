@@ -1,24 +1,44 @@
 import { ChangeEvent, useState } from "react";
-import { FaTrashCan } from "react-icons/fa6";
+import {
+  FaTrashCan,
+  FaPlus,
+  FaPenToSquare,
+  FaCircleCheck,
+  FaHourglassStart,
+} from "react-icons/fa6";
 import "./Add.css";
 function Add() {
   const [todo, setTodo] = useState<string>("");
+  const [task, setTask] = useState<string>("");
   const [listTodo, setListTodo] = useState<string[]>([]);
-  const [listTasksInProgress, setListTaskInProgress] = useState<string[]>([]); 
-  const [listFinishedTask, setListFinishedTask] = useState<string[]>([]); 
+  const [listTasksInProgress, setListTaskInProgress] = useState<string[]>([]);
+  const [listFinishedTask, setListFinishedTask] = useState<string[]>([]);
   const [edit, setEdit] = useState<boolean>(false);
+  const [editTask, setEditTask] = useState<boolean>(false);
   const [id, setId] = useState<number>();
+  const [idTask, setIdTask] = useState<number>();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    setTodo(value);
+    editTask ? setTask(value) : setTodo(value);
   };
 
   const handleAdd = () => {
     if (!edit) {
-      if (todo) {
-        setListTodo([...listTodo, todo]);
-        setTodo("");
+      if (editTask) {
+        if (task) {
+          let list = listTasksInProgress;
+          list[idTask!] = task;
+          setListTaskInProgress(list);
+          setTask("");
+          setEditTask(false);
+          setIdTask(-1);
+        }
+      } else {
+        if (todo) {
+          setListTodo([...listTodo, todo]);
+          setTodo("");
+        }
       }
     } else {
       let list = listTodo;
@@ -30,20 +50,42 @@ function Add() {
     }
   };
 
-  const handleDo = (index:number) => {
-    setListTaskInProgress([...listTasksInProgress, listTodo[index]])
-    console.table(listTodo);
+  const handleDo = (index: number) => {
+    setListTaskInProgress([...listTasksInProgress, listTodo[index]]);
+    let list = listTodo.filter((item) => item !== listTodo[index]);
+    setListTodo(list);
   };
 
-  const handleDelete = (id: number) => {
-    let list = listTodo.filter((item) => item !== listTodo[id]);
+  const handleDelete = (index: number) => {
+    let list = listTodo.filter((item) => item !== listTodo[index]);
     setListTodo(list);
+  };
+
+  const handleDeleteFinishTask = (index: number) => {
+    let list = listFinishedTask.filter(
+      (item) => item !== listFinishedTask[index]
+    );
+    setListFinishedTask(list);
+  };
+
+  const handleDone = (id: number) => {
+    setListFinishedTask([...listFinishedTask, listTasksInProgress[id]]);
+    let list = listTasksInProgress.filter(
+      (item) => item !== listTasksInProgress[id]
+    );
+    setListTaskInProgress(list);
   };
 
   const handleEdit = (index: number, value: string) => {
     setEdit(true);
     setId(index);
     setTodo(value);
+  };
+
+  const handleEditTaskInProgress = (index: number, value: string) => {
+    setEditTask(true);
+    setIdTask(index);
+    setTask(value);
   };
 
   return (
@@ -62,7 +104,7 @@ function Add() {
               aria-controls="nav-home"
               aria-selected="false"
             >
-            Add Tasks
+              Add Tasks
             </button>
             <button
               className="nav-link"
@@ -104,23 +146,34 @@ function Add() {
                   value={todo}
                 />
                 <button className="btn btn-success " onClick={handleAdd}>
-                  {edit ? "Edit" : "Add"}
+                  {edit ? <FaPenToSquare /> : <FaPlus />}
                 </button>
               </div>
               <br />
-              <div className={listTodo.length !== 0? "card":""}>
+              <div className={listTodo.length !== 0 ? "card" : ""}>
                 {listTodo.map((item, index) => (
                   <div className="content" key={index}>
-                    <div className={id!=index ? "form-control texte": "form-control texte edit"}>{item}</div>
+                    <div
+                      className={
+                        id != index
+                          ? "form-control texte"
+                          : "form-control texte edit"
+                      }
+                    >
+                      {item}
+                    </div>
                     <div className="button">
-                      <button className="btn btn-success" onClick={()=>handleDo(index)}>
-                        Do
+                      <button
+                        className="btn btn-success"
+                        onClick={() => handleDo(index)}
+                      >
+                        <FaHourglassStart />
                       </button>
                       <button
                         className="btn btn-primary"
                         onClick={() => handleEdit(index, item)}
                       >
-                        Edit
+                        <FaPenToSquare />
                       </button>
                       <button
                         className="btn btn-danger"
@@ -139,25 +192,44 @@ function Add() {
               role="tabpanel"
               aria-labelledby="nav-profile-tab"
             >
-              <div className={listTasksInProgress.length !== 0? "card":""}>
+              {editTask ? (
+                <div className="panel">
+                  <input
+                    type="text"
+                    className="form-control"
+                    onChange={handleChange}
+                    value={task}
+                  />
+                  <button className="btn btn-success " onClick={handleAdd}>
+                    <FaPenToSquare />
+                  </button>
+                </div>
+              ) : null}
+              <br />
+              <div className={listTasksInProgress.length !== 0 ? "card" : ""}>
                 {listTasksInProgress.map((item, index) => (
                   <div className="content" key={index}>
-                    <div className={id!=index ? "form-control texte": "form-control texte edit"}>{item}</div>
+                    <div
+                      className={
+                        idTask != index
+                          ? "form-control texte"
+                          : "form-control texte edit"
+                      }
+                    >
+                      {item}
+                    </div>
                     <div className="button">
-                      <button className="btn btn-success" onClick={()=>handleDo(index)}>
-                        Do
+                      <button
+                        className="btn btn-success"
+                        onClick={() => handleDone(index)}
+                      >
+                        <FaCircleCheck />
                       </button>
                       <button
                         className="btn btn-primary"
-                        onClick={() => handleEdit(index, item)}
+                        onClick={() => handleEditTaskInProgress(index, item)}
                       >
                         Edit
-                      </button>
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => handleDelete(index)}
-                      >
-                        <FaTrashCan />
                       </button>
                     </div>
                   </div>
@@ -170,23 +242,14 @@ function Add() {
               role="tabpanel"
               aria-labelledby="nav-contact-tab"
             >
-              <div className={listFinishedTask.length !== 0? "card":""}>
+              <div className={listFinishedTask.length !== 0 ? "card" : ""}>
                 {listFinishedTask.map((item, index) => (
                   <div className="content" key={index}>
-                    <div className={id!=index ? "form-control texte": "form-control texte edit"}>{item}</div>
+                    <div className="form-control texte">{item}</div>
                     <div className="button">
-                      <button className="btn btn-success" onClick={()=>handleDo(index)}>
-                        Do
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => handleEdit(index, item)}
-                      >
-                        Edit
-                      </button>
                       <button
                         className="btn btn-danger"
-                        onClick={() => handleDelete(index)}
+                        onClick={() => handleDeleteFinishTask(index)}
                       >
                         <FaTrashCan />
                       </button>
