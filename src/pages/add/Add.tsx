@@ -20,20 +20,23 @@ function Add() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    editTask ? setTask(value) : setTodo(value);
+    setTodo(value);
+  };
+
+  const handleChangeTask = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setTask(value) 
   };
 
   const handleAdd = () => {
     if (!edit) {
-      if (editTask) {
-        if (task) {
+      if (editTask && task) {
           let list = listTasksInProgress;
           list[idTask!] = task;
           setListTaskInProgress(list);
           setTask("");
           setEditTask(false);
           setIdTask(-1);
-        }
       } else {
         if (todo) {
           setListTodo([...listTodo, todo]);
@@ -197,7 +200,7 @@ function Add() {
                   <input
                     type="text"
                     className="form-control"
-                    onChange={handleChange}
+                    onChange={handleChangeTask}
                     value={task}
                   />
                   <button className="btn btn-success " onClick={handleAdd}>
