@@ -1,4 +1,5 @@
 import { ChangeEvent, useState } from "react";
+import SnackBar from "../../components/snackBar/SnackBar";
 import {
   FaTrashCan,
   FaPlus,
@@ -7,7 +8,9 @@ import {
   FaHourglassStart,
 } from "react-icons/fa6";
 import "./Add.css";
+import { FaBackspace } from "react-icons/fa";
 function Add() {
+  const ERROR = "TextField is required"; 
   const [todo, setTodo] = useState<string>("");
   const [task, setTask] = useState<string>("");
   const [listTodo, setListTodo] = useState<string[]>([]);
@@ -17,51 +20,77 @@ function Add() {
   const [editTask, setEditTask] = useState<boolean>(false);
   const [id, setId] = useState<number>();
   const [idTask, setIdTask] = useState<number>();
+  const [isError, setIsError] =  useState<boolean>(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setTodo(value);
+    setIsError(false);
   };
 
   const handleChangeTask = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    setTask(value) 
+    setTask(value) ;
+    setIsError(false);
   };
 
   const handleAdd = () => {
     if (!edit) {
-      if (editTask && task) {
+      if (editTask) {
+        if(task.trim() !== ""){
           let list = listTasksInProgress;
-          list[idTask!] = task;
+          list[idTask!] = task.trim();
           setListTaskInProgress(list);
           setTask("");
           setEditTask(false);
           setIdTask(-1);
-      } else {
-        if (todo) {
-          setListTodo([...listTodo, todo]);
+        } else {
+          setIsError(true);
+        }    
+      }  else {
+        
+        if (todo.trim() !== "") {
+          setListTodo([...listTodo, todo.trim()]);
           setTodo("");
+          
+        } else {
+          setIsError(true);
         }
       }
     } else {
-      let list = listTodo;
-      list[id!] = todo;
-      setListTodo(list);
-      setTodo("");
-      setEdit(false);
-      setId(-1);
+      
+      if(todo){
+        let list = listTodo;
+        list[id!] = todo;
+        setListTodo(list);
+        setTodo("");
+        setEdit(false);
+        setId(-1);
+      } else {
+        setIsError(true);
+      }
     }
   };
 
   const handleDo = (index: number) => {
-    setListTaskInProgress([...listTasksInProgress, listTodo[index]]);
+    if(!edit){
+      setListTaskInProgress([...listTasksInProgress, listTodo[index]]);
     let list = listTodo.filter((item) => item !== listTodo[index]);
     setListTodo(list);
+    } else {
+      console.log("Veuillez valider la modification");
+    }
+    
   };
 
   const handleDelete = (index: number) => {
     let list = listTodo.filter((item) => item !== listTodo[index]);
     setListTodo(list);
+  };
+
+  const handleDeleteInProgressTask = (index: number) => {
+    let list = listTasksInProgress.filter((item) => item !== listTasksInProgress[index]);
+    setListTaskInProgress(list);
   };
 
   const handleDeleteFinishTask = (index: number) => {
@@ -71,12 +100,13 @@ function Add() {
     setListFinishedTask(list);
   };
 
-  const handleDone = (id: number) => {
-    setListFinishedTask([...listFinishedTask, listTasksInProgress[id]]);
-    let list = listTasksInProgress.filter(
-      (item) => item !== listTasksInProgress[id]
-    );
-    setListTaskInProgress(list);
+  const handleDone = (index: number) => {
+    if(!editTask){
+      setListFinishedTask([...listFinishedTask, listTasksInProgress[index]]);
+      handleDeleteInProgressTask(index);
+    } else {
+      console.log("Veillez valider votre modification");
+    } 
   };
 
   const handleEdit = (index: number, value: string) => {
@@ -91,10 +121,30 @@ function Add() {
     setTask(value);
   };
 
+  const handleBackToAdd = (index: number) => {
+    if(!editTask){
+      setListTodo([...listTodo, listTasksInProgress[index]]);
+      handleDeleteInProgressTask(index);
+    } else {
+      console.log("Veillez valider votre modification");
+    } 
+  }
+
+  const handleBackToInProgress = (index: number) =>{
+    setListTaskInProgress([...listTasksInProgress, listFinishedTask[index]]);
+    handleDeleteFinishTask(index);
+  }
+
+  const handleClose = ()=>{
+    setIsError(false);
+  }
   return (
     <>
       <div className="container">
         <h1>TO DO LIST</h1>
+        {
+          isError && <SnackBar title={ERROR} onClose={handleClose} />
+        }
         <nav>
           <div className="nav nav-tabs mb-3" id="nav-tab" role="tablist">
             <button
@@ -224,15 +274,27 @@ function Add() {
                     <div className="button">
                       <button
                         className="btn btn-success"
-                        onClick={() => handleDone(index)}
+                        onClick={() => handleBackToAdd(index)}
                       >
-                        <FaCircleCheck />
+                        <FaBackspace />
                       </button>
                       <button
                         className="btn btn-primary"
                         onClick={() => handleEditTaskInProgress(index, item)}
                       >
-                        Edit
+                        <FaPenToSquare />
+                      </button>
+                      <button
+                        className="btn btn-warning"
+                        onClick={() => handleDone(index)}
+                      >
+                        <FaCircleCheck />
+                      </button>
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => handleDeleteInProgressTask (index)}
+                      >
+                        <FaTrashCan />
                       </button>
                     </div>
                   </div>
@@ -250,6 +312,12 @@ function Add() {
                   <div className="content" key={index}>
                     <div className="form-control texte">{item}</div>
                     <div className="button">
+                    <button
+                        className="btn btn-success"
+                        onClick={() => handleBackToInProgress(index)}
+                      >
+                        <FaBackspace />
+                      </button>
                       <button
                         className="btn btn-danger"
                         onClick={() => handleDeleteFinishTask(index)}
