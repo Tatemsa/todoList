@@ -10,7 +10,7 @@ import {
 import "./Add.css";
 import { FaBackspace } from "react-icons/fa";
 function Add() {
-  const ERROR = "TextField is required"; 
+  const ERROR = "TextField is required or let validate your modifications"; 
   const [todo, setTodo] = useState<string>("");
   const [task, setTask] = useState<string>("");
   const [listTodo, setListTodo] = useState<string[]>([]);
@@ -78,7 +78,7 @@ function Add() {
     let list = listTodo.filter((item) => item !== listTodo[index]);
     setListTodo(list);
     } else {
-      console.log("Veuillez valider la modification");
+       setIsError(true);
     }
     
   };
